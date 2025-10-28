@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -13,6 +14,7 @@ export const Tuner = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const { toast } = useToast();
 
   const noteFromPitch = (frequency: number) => {
     const noteNum = 12 * (Math.log(frequency / 440) / Math.log(2));
@@ -109,6 +111,11 @@ export const Tuner = () => {
       updatePitch();
     } catch (error) {
       console.error('Error accessing microphone:', error);
+      toast({
+        title: 'Erro ao acessar microfone',
+        description: 'Por favor, permita o acesso ao microfone nas configurações do navegador.',
+        variant: 'destructive',
+      });
     }
   };
 

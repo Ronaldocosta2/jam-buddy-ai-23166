@@ -3,6 +3,7 @@ import { Tuner } from '@/components/Tuner';
 import { URLInput } from '@/components/URLInput';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { ChordDisplay } from '@/components/ChordDisplay';
+import { Lyrics } from '@/components/Lyrics';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Music2, Radio } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +13,7 @@ const Index = () => {
   const [videoId, setVideoId] = useState<string>('');
   const [currentTime, setCurrentTime] = useState(0);
   const [chords, setChords] = useState<any[]>([]);
+  const [lyrics, setLyrics] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -38,15 +40,20 @@ const Index = () => {
         return;
       }
 
-      console.log('Chords extracted:', data);
+      console.log('Data extracted:', data);
       
       if (data?.chords) {
         setChords(data.chords);
-        toast({
-          title: 'Cifras extraídas!',
-          description: `${data.chords.length} acordes identificados`,
-        });
       }
+      
+      if (data?.lyrics) {
+        setLyrics(data.lyrics);
+      }
+      
+      toast({
+        title: 'Conteúdo extraído!',
+        description: `${data.chords?.length || 0} acordes e letra identificados`,
+      });
     } catch (err) {
       console.error('Unexpected error:', err);
       toast({
@@ -95,16 +102,27 @@ const Index = () => {
                 <URLInput onSubmit={handleURLSubmit} isLoading={isLoading} />
               </div>
             ) : (
-              <div className="grid lg:grid-cols-2 gap-6">
-                <div className="space-y-6">
-                  <YouTubePlayer
-                    videoId={videoId}
-                    onTimeUpdate={setCurrentTime}
-                  />
-                  <div className="flex justify-center">
-                    <URLInput onSubmit={handleURLSubmit} isLoading={isLoading} />
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  <URLInput onSubmit={handleURLSubmit} isLoading={isLoading} />
+                </div>
+                
+                <div className="grid lg:grid-cols-[400px_1fr] gap-6">
+                  {/* Video player - pequeno */}
+                  <div className="space-y-4">
+                    <YouTubePlayer
+                      videoId={videoId}
+                      onTimeUpdate={setCurrentTime}
+                    />
+                  </div>
+                  
+                  {/* Lyrics - direita */}
+                  <div>
+                    <Lyrics lyrics={lyrics} />
                   </div>
                 </div>
+                
+                {/* Chords - horizontal embaixo */}
                 <div>
                   <ChordDisplay chords={chords} currentTime={currentTime} />
                 </div>

@@ -35,15 +35,15 @@ serve(async (req) => {
     const videoInfo = await videoInfoResponse.json();
     console.log('Video info:', videoInfo);
 
-    // Use AI to extract/generate chord progression
-    const prompt = `Analyze this music video and provide a realistic chord progression:
+    // Extract chords with strumming patterns
+    const chordsPrompt = `Analyze this music video and provide a realistic chord progression:
 Title: "${videoInfo.title}"
 
-Based on the title and common musical patterns, generate a realistic chord progression with timestamps.
+Based on the title and common musical patterns, generate a realistic chord progression with timestamps and strumming patterns.
 Return ONLY a JSON array with this exact structure (no markdown, no explanation):
 [
-  {"time": 0, "chord": "C", "duration": 4},
-  {"time": 4, "chord": "Am", "duration": 4},
+  {"time": 0, "chord": "C", "duration": 4, "strumPattern": "down"},
+  {"time": 4, "chord": "Am", "duration": 4, "strumPattern": "down-up"},
   ...
 ]
 
@@ -52,9 +52,10 @@ Guidelines:
 - Include major and minor chords that fit the song style
 - Distribute chords evenly throughout a typical 3-4 minute song
 - Include chord variations (maj7, min7, sus4) for more complex songs
-- Return at least 20-30 chord changes`;
+- Return at least 20-30 chord changes
+- strumPattern can be: "down", "up", "down-up", "down-down-up"`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const chordsResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -67,38 +68,62 @@ Guidelines:
             role: 'system', 
             content: 'You are a music theory expert that analyzes songs and provides accurate chord progressions. Always return valid JSON arrays only.' 
           },
-          { role: 'user', content: prompt }
+          { role: 'user', content: chordsPrompt }
         ],
       }),
     });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI API error:', aiResponse.status, errorText);
+    // Extract lyrics
+    const lyricsPrompt = `Based on this music video title: "${videoInfo.title}"
+
+Provide the complete lyrics of this song. Return ONLY the lyrics text, with verses separated by double line breaks.
+Do not include [Verse], [Chorus] labels or any other markdown. Just the plain lyrics text.`;
+
+    const lyricsResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a music lyrics expert that can recall song lyrics accurately.' 
+          },
+          { role: 'user', content: lyricsPrompt }
+        ],
+      }),
+    });
+
+    if (!chordsResponse.ok) {
+      const errorText = await chordsResponse.text();
+      console.error('Chords AI API error:', chordsResponse.status, errorText);
       
-      if (aiResponse.status === 429) {
+      if (chordsResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      if (aiResponse.status === 402) {
+      if (chordsResponse.status === 402) {
         return new Response(
           JSON.stringify({ error: 'Payment required. Please add credits to continue.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      throw new Error('AI processing failed');
+      throw new Error('AI processing failed for chords');
     }
 
-    const aiData = await aiResponse.json();
-    console.log('AI response:', aiData);
+    const chordsData = await chordsResponse.json();
+    console.log('Chords AI response:', chordsData);
 
     let chords;
     try {
-      const content = aiData.choices[0].message.content;
+      const content = chordsData.choices[0].message.content;
       // Remove markdown code blocks if present
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
@@ -107,20 +132,32 @@ Guidelines:
         chords = JSON.parse(content);
       }
     } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
+      console.error('Failed to parse chords response:', parseError);
       // Fallback to default progression if parsing fails
       chords = [
-        { time: 0, chord: 'C', duration: 4 },
-        { time: 4, chord: 'Am', duration: 4 },
-        { time: 8, chord: 'F', duration: 4 },
-        { time: 12, chord: 'G', duration: 4 },
+        { time: 0, chord: 'C', duration: 4, strumPattern: 'down' },
+        { time: 4, chord: 'Am', duration: 4, strumPattern: 'down-up' },
+        { time: 8, chord: 'F', duration: 4, strumPattern: 'down' },
+        { time: 12, chord: 'G', duration: 4, strumPattern: 'down-up' },
       ];
     }
 
     console.log('Extracted chords:', chords);
 
+    // Process lyrics response
+    let lyrics = '';
+    if (lyricsResponse.ok) {
+      const lyricsData = await lyricsResponse.json();
+      console.log('Lyrics AI response:', lyricsData);
+      try {
+        lyrics = lyricsData.choices[0].message.content;
+      } catch (parseError) {
+        console.error('Failed to parse lyrics response:', parseError);
+      }
+    }
+
     return new Response(
-      JSON.stringify({ chords, videoInfo }),
+      JSON.stringify({ chords, lyrics, videoInfo }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
