@@ -103,6 +103,19 @@ const Index = () => {
               </div>
             ) : (
               <div className="space-y-4">
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={() => {
+                      setVideoId('');
+                      setChords([]);
+                      setLyrics('');
+                      setCurrentTime(0);
+                    }}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Nova Música
+                  </button>
+                </div>
                 <div className="grid lg:grid-cols-[400px_1fr] gap-6">
                   {/* Video player - pequeno */}
                   <div className="space-y-4">

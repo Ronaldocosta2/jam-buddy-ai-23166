@@ -150,14 +150,22 @@ Do not include [Verse], [Chorus] labels or any other markdown. Just the plain ly
       const lyricsData = await lyricsResponse.json();
       console.log('Lyrics AI response:', lyricsData);
       try {
-        lyrics = lyricsData.choices[0].message.content;
+        lyrics = lyricsData.choices[0].message.content.trim();
+        console.log('Extracted lyrics length:', lyrics.length);
       } catch (parseError) {
         console.error('Failed to parse lyrics response:', parseError);
+        lyrics = 'Não foi possível carregar a letra desta música.';
       }
+    } else {
+      console.error('Lyrics API request failed:', lyricsResponse.status);
+      lyrics = 'Não foi possível carregar a letra desta música.';
     }
 
+    const response = { chords, lyrics, videoInfo };
+    console.log('Returning response with lyrics length:', lyrics.length);
+
     return new Response(
-      JSON.stringify({ chords, lyrics, videoInfo }),
+      JSON.stringify(response),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
