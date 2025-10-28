@@ -5,34 +5,58 @@ import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { ChordDisplay } from '@/components/ChordDisplay';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Music2, Radio } from 'lucide-react';
-
-// Mock chord data - will be replaced with actual API data
-const mockChords = [
-  { time: 0, chord: 'C', duration: 4 },
-  { time: 4, chord: 'Am', duration: 4 },
-  { time: 8, chord: 'F', duration: 4 },
-  { time: 12, chord: 'G', duration: 4 },
-  { time: 16, chord: 'C', duration: 4 },
-  { time: 20, chord: 'Em', duration: 4 },
-  { time: 24, chord: 'Am', duration: 4 },
-  { time: 28, chord: 'G', duration: 4 },
-];
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [videoId, setVideoId] = useState<string>('');
   const [currentTime, setCurrentTime] = useState(0);
   const [chords, setChords] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleURLSubmit = async (id: string) => {
     setIsLoading(true);
     setVideoId(id);
+    setChords([]);
     
-    // Simulate API call - will be replaced with actual backend call
-    setTimeout(() => {
-      setChords(mockChords);
+    try {
+      console.log('Extracting chords for video:', id);
+      
+      const { data, error } = await supabase.functions.invoke('extract-chords', {
+        body: { videoId: id }
+      });
+
+      if (error) {
+        console.error('Error extracting chords:', error);
+        toast({
+          title: 'Erro ao extrair cifras',
+          description: error.message || 'Não foi possível processar o vídeo',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Chords extracted:', data);
+      
+      if (data?.chords) {
+        setChords(data.chords);
+        toast({
+          title: 'Cifras extraídas!',
+          description: `${data.chords.length} acordes identificados`,
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast({
+        title: 'Erro inesperado',
+        description: 'Ocorreu um erro ao processar o vídeo',
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (

@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ChordDiagram } from './ChordDiagram';
 
 interface Chord {
   time: number;
@@ -49,7 +50,7 @@ export const ChordDisplay = ({ chords, currentTime }: ChordDisplayProps) => {
                       : 'bg-muted/50'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-3">
                     <span
                       className={`text-3xl font-bold ${
                         index === currentIndex ? 'text-white' : 'text-foreground'
@@ -64,6 +65,9 @@ export const ChordDisplay = ({ chords, currentTime }: ChordDisplayProps) => {
                     >
                       {Math.floor(chord.time / 60)}:{String(Math.floor(chord.time % 60)).padStart(2, '0')}
                     </span>
+                  </div>
+                  <div className="flex justify-center">
+                    <ChordDiagram chord={chord.chord} isActive={index === currentIndex} />
                   </div>
                 </div>
               ))

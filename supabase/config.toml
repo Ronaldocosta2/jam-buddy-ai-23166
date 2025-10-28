@@ -1,0 +1,4 @@
+project_id = "vwxvghoxdqesesysoglv"
+
+[functions.extract-chords]
+verify_jwt = false
