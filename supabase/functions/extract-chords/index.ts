@@ -35,6 +35,20 @@ serve(async (req) => {
     const videoInfo = await videoInfoResponse.json();
     console.log('Video info:', videoInfo);
 
+    // Try to get YouTube transcript/captions
+    let lyrics = '';
+    try {
+      const transcriptUrl = `https://www.youtube.com/watch?v=${videoId}`;
+      console.log('Attempting to fetch transcript for:', transcriptUrl);
+      
+      // Since we can't directly access YouTube transcripts without additional libraries,
+      // we'll inform the user that lyrics need to be added manually or use a third-party service
+      lyrics = `Letras não disponíveis automaticamente.\n\nPara visualizar as letras desta música:\n• Busque por "${videoInfo.title}" no Google\n• Acesse sites como Letras.mus.br ou Vagalume\n• Copie e cole as letras aqui`;
+    } catch (error) {
+      console.error('Error fetching transcript:', error);
+      lyrics = 'Não foi possível carregar as letras desta música.';
+    }
+
     // Extract chords with strumming patterns
     const chordsPrompt = `Analyze this music video and provide a realistic chord progression:
 Title: "${videoInfo.title}"
@@ -73,29 +87,6 @@ Guidelines:
       }),
     });
 
-    // Extract lyrics
-    const lyricsPrompt = `Based on this music video title: "${videoInfo.title}"
-
-Provide the complete lyrics of this song. Return ONLY the lyrics text, with verses separated by double line breaks.
-Do not include [Verse], [Chorus] labels or any other markdown. Just the plain lyrics text.`;
-
-    const lyricsResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are a music lyrics expert that can recall song lyrics accurately.' 
-          },
-          { role: 'user', content: lyricsPrompt }
-        ],
-      }),
-    });
 
     if (!chordsResponse.ok) {
       const errorText = await chordsResponse.text();
@@ -144,25 +135,8 @@ Do not include [Verse], [Chorus] labels or any other markdown. Just the plain ly
 
     console.log('Extracted chords:', chords);
 
-    // Process lyrics response
-    let lyrics = '';
-    if (lyricsResponse.ok) {
-      const lyricsData = await lyricsResponse.json();
-      console.log('Lyrics AI response:', lyricsData);
-      try {
-        lyrics = lyricsData.choices[0].message.content.trim();
-        console.log('Extracted lyrics length:', lyrics.length);
-      } catch (parseError) {
-        console.error('Failed to parse lyrics response:', parseError);
-        lyrics = 'Não foi possível carregar a letra desta música.';
-      }
-    } else {
-      console.error('Lyrics API request failed:', lyricsResponse.status);
-      lyrics = 'Não foi possível carregar a letra desta música.';
-    }
-
     const response = { chords, lyrics, videoInfo };
-    console.log('Returning response with lyrics length:', lyrics.length);
+    console.log('Returning response with lyrics:', lyrics.substring(0, 100));
 
     return new Response(
       JSON.stringify(response),
