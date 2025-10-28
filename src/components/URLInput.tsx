@@ -15,13 +15,18 @@ export const URLInput = ({ onSubmit, isLoading }: URLInputProps) => {
   const { toast } = useToast();
 
   const extractVideoId = (url: string): string | null => {
+    // Remove espaços em branco
+    const cleanUrl = url.trim();
+    
     const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
-      /youtube\.com\/embed\/([^&\n?#]+)/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&\n?#]+)/,
+      /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([^&\n?#]+)/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^&\n?#]+)/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/v\/([^&\n?#]+)/,
     ];
 
     for (const pattern of patterns) {
-      const match = url.match(pattern);
+      const match = cleanUrl.match(pattern);
       if (match && match[1]) {
         return match[1];
       }
@@ -46,7 +51,7 @@ export const URLInput = ({ onSubmit, isLoading }: URLInputProps) => {
     if (!videoId) {
       toast({
         title: 'URL inválida',
-        description: 'Por favor, insira uma URL válida do YouTube',
+        description: 'Por favor, insira uma URL válida do YouTube (ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ ou https://youtu.be/dQw4w9WgXcQ)',
         variant: 'destructive',
       });
       return;
