@@ -103,10 +103,6 @@ const Index = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex justify-center">
-                  <URLInput onSubmit={handleURLSubmit} isLoading={isLoading} />
-                </div>
-                
                 <div className="grid lg:grid-cols-[400px_1fr] gap-6">
                   {/* Video player - pequeno */}
                   <div className="space-y-4">

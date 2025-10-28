@@ -5,22 +5,135 @@ interface ChordDiagramProps {
 }
 
 export const ChordDiagram = ({ chord, strumPattern = 'down', isActive = false }: ChordDiagramProps) => {
-  // Guitar chord fingerings with actual fret positions
-  const chordPatterns: Record<string, { frets: (number | null)[], name: string }> = {
-    'C': { frets: [null, 3, 2, 0, 1, 0], name: 'C' },
-    'D': { frets: [null, null, 0, 2, 3, 2], name: 'D' },
-    'E': { frets: [0, 2, 2, 1, 0, 0], name: 'E' },
-    'F': { frets: [1, 3, 3, 2, 1, 1], name: 'F' },
-    'G': { frets: [3, 2, 0, 0, 0, 3], name: 'G' },
-    'A': { frets: [null, 0, 2, 2, 2, 0], name: 'A' },
-    'B': { frets: [null, 2, 4, 4, 4, 2], name: 'B' },
-    'Am': { frets: [null, 0, 2, 2, 1, 0], name: 'Am' },
-    'Bm': { frets: [null, 2, 4, 4, 3, 2], name: 'Bm' },
-    'Cm': { frets: [null, 3, 5, 5, 4, 3], name: 'Cm' },
-    'Dm': { frets: [null, null, 0, 2, 3, 1], name: 'Dm' },
-    'Em': { frets: [0, 2, 2, 0, 0, 0], name: 'Em' },
-    'Fm': { frets: [1, 3, 3, 1, 1, 1], name: 'Fm' },
-    'Gm': { frets: [3, 5, 5, 3, 3, 3], name: 'Gm' },
+  // Guitar chord fingerings with fret positions and finger numbers
+  // Format: [string, fret, finger] - finger: 0=open, -1=muted, 1-4=fingers
+  const chordPatterns: Record<string, { positions: Array<{ string: number; fret: number; finger: number }>, muted: number[] }> = {
+    'C': { 
+      positions: [
+        { string: 5, fret: 3, finger: 3 },
+        { string: 4, fret: 2, finger: 2 },
+        { string: 2, fret: 1, finger: 1 }
+      ],
+      muted: [6]
+    },
+    'D': { 
+      positions: [
+        { string: 3, fret: 2, finger: 1 },
+        { string: 2, fret: 3, finger: 3 },
+        { string: 1, fret: 2, finger: 2 }
+      ],
+      muted: [6, 5]
+    },
+    'E': { 
+      positions: [
+        { string: 5, fret: 2, finger: 2 },
+        { string: 4, fret: 2, finger: 3 },
+        { string: 3, fret: 1, finger: 1 }
+      ],
+      muted: []
+    },
+    'F': { 
+      positions: [
+        { string: 6, fret: 1, finger: 1 },
+        { string: 5, fret: 3, finger: 3 },
+        { string: 4, fret: 3, finger: 4 },
+        { string: 3, fret: 2, finger: 2 },
+        { string: 2, fret: 1, finger: 1 },
+        { string: 1, fret: 1, finger: 1 }
+      ],
+      muted: []
+    },
+    'G': { 
+      positions: [
+        { string: 6, fret: 3, finger: 2 },
+        { string: 5, fret: 2, finger: 1 },
+        { string: 1, fret: 3, finger: 3 }
+      ],
+      muted: []
+    },
+    'A': { 
+      positions: [
+        { string: 4, fret: 2, finger: 1 },
+        { string: 3, fret: 2, finger: 2 },
+        { string: 2, fret: 2, finger: 3 }
+      ],
+      muted: [6]
+    },
+    'B': { 
+      positions: [
+        { string: 5, fret: 2, finger: 1 },
+        { string: 4, fret: 4, finger: 2 },
+        { string: 3, fret: 4, finger: 3 },
+        { string: 2, fret: 4, finger: 4 },
+        { string: 1, fret: 2, finger: 1 }
+      ],
+      muted: [6]
+    },
+    'Am': { 
+      positions: [
+        { string: 4, fret: 2, finger: 2 },
+        { string: 3, fret: 2, finger: 3 },
+        { string: 2, fret: 1, finger: 1 }
+      ],
+      muted: [6]
+    },
+    'Bm': { 
+      positions: [
+        { string: 5, fret: 2, finger: 1 },
+        { string: 4, fret: 4, finger: 3 },
+        { string: 3, fret: 4, finger: 4 },
+        { string: 2, fret: 3, finger: 2 },
+        { string: 1, fret: 2, finger: 1 }
+      ],
+      muted: [6]
+    },
+    'Cm': { 
+      positions: [
+        { string: 5, fret: 3, finger: 1 },
+        { string: 4, fret: 5, finger: 3 },
+        { string: 3, fret: 5, finger: 4 },
+        { string: 2, fret: 4, finger: 2 },
+        { string: 1, fret: 3, finger: 1 }
+      ],
+      muted: [6]
+    },
+    'Dm': { 
+      positions: [
+        { string: 3, fret: 2, finger: 1 },
+        { string: 2, fret: 3, finger: 3 },
+        { string: 1, fret: 1, finger: 2 }
+      ],
+      muted: [6, 5]
+    },
+    'Em': { 
+      positions: [
+        { string: 5, fret: 2, finger: 2 },
+        { string: 4, fret: 2, finger: 3 }
+      ],
+      muted: []
+    },
+    'Fm': { 
+      positions: [
+        { string: 6, fret: 1, finger: 1 },
+        { string: 5, fret: 3, finger: 3 },
+        { string: 4, fret: 3, finger: 4 },
+        { string: 3, fret: 1, finger: 1 },
+        { string: 2, fret: 1, finger: 1 },
+        { string: 1, fret: 1, finger: 1 }
+      ],
+      muted: []
+    },
+    'Gm': { 
+      positions: [
+        { string: 6, fret: 3, finger: 1 },
+        { string: 5, fret: 5, finger: 3 },
+        { string: 4, fret: 5, finger: 4 },
+        { string: 3, fret: 3, finger: 1 },
+        { string: 2, fret: 3, finger: 1 },
+        { string: 1, fret: 3, finger: 1 }
+      ],
+      muted: []
+    },
   };
 
   const baseChord = chord.replace(/[0-9]|maj|min|sus|dim|aug/gi, '').trim();
@@ -32,8 +145,11 @@ export const ChordDiagram = ({ chord, strumPattern = 'down', isActive = false }:
         {dir === 'down' ? '↓' : '↑'}
       </span>
     ));
-    return <div className="flex gap-1">{arrows}</div>;
+    return <div className="flex gap-1 justify-center">{arrows}</div>;
   };
+
+  const FRET_COUNT = 5;
+  const STRING_COUNT = 6;
 
   return (
     <div className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all ${
@@ -41,38 +157,100 @@ export const ChordDiagram = ({ chord, strumPattern = 'down', isActive = false }:
         ? 'bg-gradient-primary border-primary shadow-glow scale-105' 
         : 'bg-card border-border'
     }`}>
-      <div className={`text-xl font-bold mb-2 ${isActive ? 'text-primary-foreground' : 'text-foreground'}`}>
+      <div className={`text-lg font-bold mb-3 ${isActive ? 'text-primary-foreground' : 'text-foreground'}`}>
         {chord}
       </div>
       
-      {/* Tablatura */}
-      <div className="relative bg-muted/30 rounded p-2 mb-2">
-        <div className="flex flex-col gap-[3px]">
-          {['e', 'B', 'G', 'D', 'A', 'E'].map((string, stringIdx) => {
-            const fretValue = pattern.frets[5 - stringIdx];
+      {/* Chord Diagram - Traditional Grid Style */}
+      <div className="relative">
+        {/* String markers at top (x or o) */}
+        <div className="flex justify-between mb-1 px-1" style={{ width: '80px' }}>
+          {Array.from({ length: STRING_COUNT }).map((_, stringIdx) => {
+            const stringNum = STRING_COUNT - stringIdx;
+            const isMuted = pattern.muted.includes(stringNum);
+            const isOpen = !isMuted && !pattern.positions.some(p => p.string === stringNum);
             return (
-              <div key={stringIdx} className="flex items-center gap-2">
-                <span className={`text-xs font-mono w-3 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                  {string}
-                </span>
-                <div className="flex items-center">
-                  <div className={`h-[2px] w-16 ${isActive ? 'bg-primary-foreground/40' : 'bg-foreground/40'}`} />
-                  <span className={`absolute ml-1 text-sm font-bold ${
-                    fretValue === null 
-                      ? isActive ? 'text-destructive-foreground' : 'text-destructive'
-                      : isActive ? 'text-primary-foreground' : 'text-primary'
-                  }`}>
-                    {fretValue === null ? 'x' : fretValue === 0 ? 'o' : fretValue}
-                  </span>
-                </div>
+              <div 
+                key={stringIdx} 
+                className={`text-xs font-bold w-3 text-center ${
+                  isMuted 
+                    ? isActive ? 'text-destructive-foreground' : 'text-destructive'
+                    : isActive ? 'text-primary-foreground' : 'text-muted-foreground'
+                }`}
+              >
+                {isMuted ? '×' : isOpen ? '○' : ''}
               </div>
             );
           })}
         </div>
+
+        {/* Fretboard Grid */}
+        <svg width="80" height="100" className="block">
+          {/* Nut (top thick line) */}
+          <line 
+            x1="5" y1="5" x2="75" y2="5" 
+            stroke={isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'} 
+            strokeWidth="3"
+          />
+          
+          {/* Vertical strings */}
+          {Array.from({ length: STRING_COUNT }).map((_, i) => (
+            <line 
+              key={`string-${i}`}
+              x1={5 + i * 14} 
+              y1="5" 
+              x2={5 + i * 14} 
+              y2="95" 
+              stroke={isActive ? 'hsl(var(--primary-foreground) / 0.4)' : 'hsl(var(--foreground) / 0.4)'} 
+              strokeWidth="1"
+            />
+          ))}
+          
+          {/* Horizontal frets */}
+          {Array.from({ length: FRET_COUNT }).map((_, i) => (
+            <line 
+              key={`fret-${i}`}
+              x1="5" 
+              y1={5 + (i + 1) * 18} 
+              x2="75" 
+              y2={5 + (i + 1) * 18} 
+              stroke={isActive ? 'hsl(var(--primary-foreground) / 0.4)' : 'hsl(var(--foreground) / 0.4)'} 
+              strokeWidth="1"
+            />
+          ))}
+          
+          {/* Finger positions */}
+          {pattern.positions.map((pos, idx) => {
+            if (pos.fret === 0 || pos.fret > FRET_COUNT) return null;
+            const x = 5 + (STRING_COUNT - pos.string) * 14;
+            const y = 5 + (pos.fret * 18) - 9;
+            
+            return (
+              <g key={idx}>
+                <circle 
+                  cx={x} 
+                  cy={y} 
+                  r="7" 
+                  fill={isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'} 
+                />
+                <text 
+                  x={x} 
+                  y={y + 1} 
+                  textAnchor="middle" 
+                  dominantBaseline="middle"
+                  className="text-[10px] font-bold"
+                  fill={isActive ? 'hsl(var(--primary))' : 'hsl(var(--background))'}
+                >
+                  {pos.finger}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
 
       {/* Strumming pattern */}
-      <div className="text-sm font-semibold">
+      <div className="text-sm font-semibold mt-2">
         {renderStrumPattern()}
       </div>
     </div>

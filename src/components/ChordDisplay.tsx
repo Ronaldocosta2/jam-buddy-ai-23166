@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChordDiagram } from './ChordDiagram';
@@ -15,6 +16,8 @@ interface ChordDisplayProps {
 }
 
 export const ChordDisplay = ({ chords, currentTime }: ChordDisplayProps) => {
+  const activeChordRef = useRef<HTMLDivElement>(null);
+  
   const getCurrentChordIndex = () => {
     for (let i = chords.length - 1; i >= 0; i--) {
       if (currentTime >= chords[i].time) {
@@ -25,6 +28,16 @@ export const ChordDisplay = ({ chords, currentTime }: ChordDisplayProps) => {
   };
 
   const currentIndex = getCurrentChordIndex();
+
+  useEffect(() => {
+    if (activeChordRef.current) {
+      activeChordRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+  }, [currentIndex]);
 
   return (
     <div className="bg-card border-border border-2 rounded-lg p-4">
@@ -42,6 +55,7 @@ export const ChordDisplay = ({ chords, currentTime }: ChordDisplayProps) => {
             {chords.map((chord, index) => (
               <div
                 key={index}
+                ref={index === currentIndex ? activeChordRef : null}
                 className="flex-shrink-0"
               >
                 <ChordDiagram 
